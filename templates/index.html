@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserva Sala de PC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Horarios - Sala de PC</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/">
+            <label for="nombre">Nombre Docente:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ datos.nombre or '' }}" required>
+
+            <label for="correo">Correo Electrónico:</label>
+            <input type="email" id="correo" name="correo" value="{{ datos.correo or '' }}" required>
+
+            <label for="dia">Día:</label>
+            <select id="dia" name="dia" required>
+                <option value="Lunes" {% if datos.dia == 'Lunes' %}selected{% endif %}>Lunes</option>
+                <option value="Martes" {% if datos.dia == 'Martes' %}selected{% endif %}>Martes</option>
+                <option value="miercoles" {% if datos.dia == 'miercoles' %}selected{% endif %}>Miércoles</option>
+                <option value="Jueves" {% if datos.dia == 'Jueves' %}selected{% endif %}>Jueves</option>
+                <option value="Viernes" {% if datos.dia == 'Viernes' %}selected{% endif %}>Viernes</option>
+            </select>
+
+            <label for="bloque">Bloque Horario:</label>
+            <select id="bloque" name="bloque" required>
+                <option value="08:30 - 10:00" {% if datos.bloque == '08:30 - 10:00' %}selected{% endif %}>08:30 - 10:00</option>
+                <option value="10:15 - 11:45" {% if datos.bloque == '10:15 - 11:45' %}selected{% endif %}>10:15 - 11:45</option>
+                <option value="12:00 - 14:15" {% if datos.bloque == '12:00 - 14:15' %}selected{% endif %}>12:00 - 14:15</option>
+                <option value="15:00 - 17:15" {% if datos.bloque == '15:00 - 17:15' %}selected{% endif %}>15:00 - 17:15</option>
+            </select>
+
+            <!-- Botón 1: Comprobar -->
+            <button type="submit" name="accion" value="comprobar" class="btn-check">1. Comprobar Disponibilidad</button>
+
+            <!-- Botón 2: Confirmar (solo habilitado si se comprobó y estaba LIBRE) -->
+            {% if estado == 'DISPONIBLE' %}
+                <button type="submit" name="accion" value="reservar" class="btn-confirm">2. Confirmar y Reservar Horario</button>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>
