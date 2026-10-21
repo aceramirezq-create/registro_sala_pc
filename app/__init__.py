@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask  # type: ignore[import-not-found]
 from app.config import Config
 
 def create_app():
