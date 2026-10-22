@@ -1,139 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reserva Sala de Computación</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#104b83">
+<title>Colegio San Lorenzo | Reserva de Sala de Computación</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
-    <main class="page">
-        <header class="page-header">
-            <p class="eyebrow">GESTIÓN DE RECURSOS</p>
-            <h1>Sala de Computación</h1>
-            <p class="subtitle">Solicita un bloque y consulta la ocupación actual del calendario.</p>
-        </header>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <section aria-live="polite" class="messages">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        </section>
-        {% endif %}
-        {% endwith %}
-
-        <section class="card booking-card">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">NUEVA SOLICITUD</p>
-                    <h2>Reservar un bloque</h2>
-                </div>
-                <span class="step-number">01</span>
-            </div>
-            <p class="hint">La reserva se confirma automáticamente solo si el bloque sigue libre al guardar.</p>
-            <form method="POST" action="{{ url_for('main.index') }}">
-                <div class="form-grid">
-                    <div class="field field-wide">
-                        <label for="nombre">Nombre del docente</label>
-                        <input type="text" id="nombre" name="nombre" maxlength="120" autocomplete="name" required>
-                    </div>
-                    <div class="field field-wide">
-                        <label for="correo">Correo electrónico</label>
-                        <input type="email" id="correo" name="correo" maxlength="254" autocomplete="email" required>
-                    </div>
-                    <div class="field">
-                        <label for="dia">Día</label>
-                        <select id="dia" name="dia" required>
-                            <option value="" selected disabled>Seleccionar día</option>
-                            {% for dia in ocupacion.dias %}<option value="{{ dia }}">{{ dia }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="bloque">Bloque horario</label>
-                        <select id="bloque" name="bloque" required>
-                            <option value="" selected disabled>Seleccionar bloque</option>
-                            {% for horario in ocupacion.horarios %}<option value="{{ horario.bloque }}">{{
-                                horario.bloque }}</option>{% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Solicitar y reservar automáticamente</button>
-            </form>
-        </section>
-
-        <section class="card occupancy-card">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">CALENDARIO EN VIVO</p>
-                    <h2>Panel de ocupación</h2>
-                </div>
-                <span class="step-number">02</span>
-            </div>
-            <div class="legend"><span><i class="dot dot-free"></i>Disponible</span><span><i
-                        class="dot dot-busy"></i>Ocupado</span></div>
-            {% if error_ocupacion %}
-            <div class="alert alert-danger">{{ error_ocupacion }}</div>
-            {% elif ocupacion.horarios %}
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Bloque</th>{% for dia in ocupacion.dias %}<th>{{ dia }}</th>{% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for horario in ocupacion.horarios %}
-                        <tr>
-                            <th scope="row">{{ horario.bloque }}</th>
-                            {% for estado in horario.estados %}
-                            <td>
-
-                                {% if estado.ocupado %}
-                                <span class="status status-busy" title="Ocupado por {{ estado.docente }}">
-                                    Ocupado
-                                </span>
-
-                                <span class="teacher">{{ estado.docente }}</span>
-
-                                <form method="POST" action="{{ url_for('main.liberar') }}"
-                                    onsubmit="return confirm('¿Seguro que deseas liberar este bloque?');">
-
-                                    <input type="hidden" name="dia" value="{{ estado.dia }}">
-                                    <input type="hidden" name="bloque" value="{{ horario.bloque }}">
-
-                                    <label>
-                                        Contraseña de administrador
-                                        <input type="password" name="admin_password" autocomplete="current-password"
-                                            required>
-                                    </label>
-
-                                    <button type="submit" class="btn-primary">
-                                        Liberar bloque
-                                    </button>
-                                </form>
-                                {% else %}
-
-                                <span class="status status-free">Disponible</span>
-                                {% endif %}
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <p class="table-note">La tabla se actualiza al cargar o volver a esta página.</p>
-            {% else %}
-            <p class="hint">No hay bloques para mostrar. Revisa que el archivo Excel tenga los días en la primera fila y
-                los bloques en la primera columna.</p>
-            {% endif %}
-        </section>
-        <footer>Gestión de Sala de Computación</footer>
-    </main>
-</body>
-
-</html>
+<main class="page">
+<header class="school-header">
+  <div class="school-brand">
+    <img class="school-logo" src="{{ url_for('static', filename='img/colegio-san-lorenzo.png') }}" alt="Emblema del Colegio San Lorenzo">
+    <div>
+      <p class="eyebrow">COLEGIO SAN LORENZO</p>
+      <h1>Sala de Computación</h1>
+      <p class="subtitle">Sistema de reserva de recursos tecnológicos</p>
+    </div>
+  </div><div class="header-accent" aria-hidden="true"></div>
+</header>
+<div class="welcome-strip"><span class="welcome-mark" aria-hidden="true">SL</span><div><p class="welcome-title">Gestión de recursos educativos</p><p class="welcome-text">Consulta la disponibilidad y solicita el bloque que necesitas.</p></div></div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}<section aria-live="polite" class="messages">{% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}</section>{% endif %}
+{% endwith %}
+<section class="card booking-card">
+  <div class="section-heading"><div><p class="eyebrow">01 · NUEVA SOLICITUD</p><h2>Reservar un bloque</h2></div><span class="section-icon" aria-hidden="true">＋</span></div>
+  <p class="hint">Completa los datos. La reserva se confirma automáticamente solo si el bloque sigue libre al guardar.</p>
+  <form method="POST" action="{{ url_for('main.index') }}">
+    <div class="form-grid">
+      <div class="field field-wide"><label for="nombre">Nombre del docente</label><input type="text" id="nombre" name="nombre" maxlength="120" autocomplete="name" placeholder="Escribe tu nombre completo" required></div>
+      <div class="field field-wide"><label for="correo">Correo electrónico</label><input type="email" id="correo" name="correo" maxlength="254" autocomplete="email" placeholder="nombre@colegiosanlorenzo.org" required></div>
+      <div class="field"><label for="dia">Día</label><select id="dia" name="dia" required><option value="" selected disabled>Seleccionar día</option>{% for dia in ocupacion.dias %}<option value="{{ dia }}">{{ dia }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="bloque">Bloque horario</label><select id="bloque" name="bloque" required><option value="" selected disabled>Seleccionar bloque</option>{% for horario in ocupacion.horarios %}<option value="{{ horario.bloque }}">{{ horario.bloque }}</option>{% endfor %}</select></div>
+    </div>
+    <button type="submit" class="btn-primary">Solicitar y reservar automáticamente <span aria-hidden="true">→</span></button>
+  </form>
+</section>
+<section class="card occupancy-card">
+  <div class="section-heading"><div><p class="eyebrow">02 · CALENDARIO EN VIVO</p><h2>Panel de ocupación</h2><p class="section-description">Revisa qué bloques están disponibles antes de enviar tu solicitud.</p></div><span class="section-icon" aria-hidden="true">▦</span></div>
+  <div class="legend"><span><i class="dot dot-free"></i>Disponible</span><span><i class="dot dot-busy"></i>Ocupado</span></div>
+  {% if error_ocupacion %}<div class="alert alert-danger">{{ error_ocupacion }}</div>
+  {% elif ocupacion.horarios %}
+  <div class="table-wrap"><table><thead><tr><th>Bloque horario</th>{% for dia in ocupacion.dias %}<th>{{ dia }}</th>{% endfor %}</tr></thead><tbody>
+  {% for horario in ocupacion.horarios %}<tr><th scope="row">{{ horario.bloque }}</th>{% for estado in horario.estados %}<td>
+    {% if estado.ocupado %}
+    <span class="status status-busy" title="Ocupado por {{ estado.docente }}">Ocupado</span><span class="teacher">{{ estado.docente }}</span>
+    <form method="POST" action="{{ url_for('main.liberar') }}" class="release-form" onsubmit="return confirm('¿Seguro que deseas liberar este bloque?');">
+      <input type="hidden" name="dia" value="{{ estado.dia }}"><input type="hidden" name="bloque" value="{{ horario.bloque }}">
+      <label for="admin-{{ loop.index }}-{{ horario.bloque|replace(' ', '-') }}">Contraseña de administrador</label>
+      <input type="password" id="admin-{{ loop.index }}-{{ horario.bloque|replace(' ', '-') }}" name="admin_password" autocomplete="current-password" required>
+      <button type="submit" class="btn-release">Liberar bloque</button>
+    </form>
+    {% else %}<span class="status status-free">Disponible</span>{% endif %}
+  </td>{% endfor %}</tr>{% endfor %}
+  </tbody></table></div>
+  <p class="table-note">El calendario refleja los datos cargados al abrir o actualizar esta página.</p>
+  {% else %}<p class="hint">No hay bloques para mostrar. Revisa que el archivo Excel tenga los días en la primera fila y los bloques en la primera columna.</p>{% endif %}
+</section>
+<footer class="school-footer"><img src="{{ url_for('static', filename='img/colegio-san-lorenzo.jfif') }}" alt="" class="footer-logo"><span><strong>Colegio San Lorenzo</strong> · Gestión de Sala de Computación</span></footer>
+</main>
+</body></html>
