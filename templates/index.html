@@ -1,54 +1,139 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <title>Reserva Sala de PC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reserva Sala de Computación</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-    <div class="container">
-        <h2>Gestión de Horarios - Sala de PC</h2>
+    <main class="page">
+        <header class="page-header">
+            <p class="eyebrow">GESTIÓN DE RECURSOS</p>
+            <h1>Sala de Computación</h1>
+            <p class="subtitle">Solicita un bloque y consulta la ocupación actual del calendario.</p>
+        </header>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
+        {% if messages %}
+        <section aria-live="polite" class="messages">
             {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
+            <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
-          {% endif %}
+        </section>
+        {% endif %}
         {% endwith %}
 
-        <form method="POST" action="/">
-            <label for="nombre">Nombre Docente:</label>
-            <input type="text" id="nombre" name="nombre" value="{{ datos.nombre or '' }}" required>
+        <section class="card booking-card">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">NUEVA SOLICITUD</p>
+                    <h2>Reservar un bloque</h2>
+                </div>
+                <span class="step-number">01</span>
+            </div>
+            <p class="hint">La reserva se confirma automáticamente solo si el bloque sigue libre al guardar.</p>
+            <form method="POST" action="{{ url_for('main.index') }}">
+                <div class="form-grid">
+                    <div class="field field-wide">
+                        <label for="nombre">Nombre del docente</label>
+                        <input type="text" id="nombre" name="nombre" maxlength="120" autocomplete="name" required>
+                    </div>
+                    <div class="field field-wide">
+                        <label for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" maxlength="254" autocomplete="email" required>
+                    </div>
+                    <div class="field">
+                        <label for="dia">Día</label>
+                        <select id="dia" name="dia" required>
+                            <option value="" selected disabled>Seleccionar día</option>
+                            {% for dia in ocupacion.dias %}<option value="{{ dia }}">{{ dia }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="bloque">Bloque horario</label>
+                        <select id="bloque" name="bloque" required>
+                            <option value="" selected disabled>Seleccionar bloque</option>
+                            {% for horario in ocupacion.horarios %}<option value="{{ horario.bloque }}">{{
+                                horario.bloque }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Solicitar y reservar automáticamente</button>
+            </form>
+        </section>
 
-            <label for="correo">Correo Electrónico:</label>
-            <input type="email" id="correo" name="correo" value="{{ datos.correo or '' }}" required>
+        <section class="card occupancy-card">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">CALENDARIO EN VIVO</p>
+                    <h2>Panel de ocupación</h2>
+                </div>
+                <span class="step-number">02</span>
+            </div>
+            <div class="legend"><span><i class="dot dot-free"></i>Disponible</span><span><i
+                        class="dot dot-busy"></i>Ocupado</span></div>
+            {% if error_ocupacion %}
+            <div class="alert alert-danger">{{ error_ocupacion }}</div>
+            {% elif ocupacion.horarios %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bloque</th>{% for dia in ocupacion.dias %}<th>{{ dia }}</th>{% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for horario in ocupacion.horarios %}
+                        <tr>
+                            <th scope="row">{{ horario.bloque }}</th>
+                            {% for estado in horario.estados %}
+                            <td>
 
-            <label for="dia">Día:</label>
-            <select id="dia" name="dia" required>
-                <option value="Lunes" {% if datos.dia == 'Lunes' %}selected{% endif %}>Lunes</option>
-                <option value="Martes" {% if datos.dia == 'Martes' %}selected{% endif %}>Martes</option>
-                <option value="miercoles" {% if datos.dia == 'miercoles' %}selected{% endif %}>Miércoles</option>
-                <option value="Jueves" {% if datos.dia == 'Jueves' %}selected{% endif %}>Jueves</option>
-                <option value="Viernes" {% if datos.dia == 'Viernes' %}selected{% endif %}>Viernes</option>
-            </select>
+                                {% if estado.ocupado %}
+                                <span class="status status-busy" title="Ocupado por {{ estado.docente }}">
+                                    Ocupado
+                                </span>
 
-            <label for="bloque">Bloque Horario:</label>
-            <select id="bloque" name="bloque" required>
-                <option value="08:30 - 10:00" {% if datos.bloque == '08:30 - 10:00' %}selected{% endif %}>08:30 - 10:00</option>
-                <option value="10:15 - 11:45" {% if datos.bloque == '10:15 - 11:45' %}selected{% endif %}>10:15 - 11:45</option>
-                <option value="12:00 - 14:15" {% if datos.bloque == '12:00 - 14:15' %}selected{% endif %}>12:00 - 14:15</option>
-                <option value="15:00 - 17:15" {% if datos.bloque == '15:00 - 17:15' %}selected{% endif %}>15:00 - 17:15</option>
-            </select>
+                                <span class="teacher">{{ estado.docente }}</span>
 
-            <!-- Botón 1: Comprobar -->
-            <button type="submit" name="accion" value="comprobar" class="btn-check">1. Comprobar Disponibilidad</button>
+                                <form method="POST" action="{{ url_for('main.liberar') }}"
+                                    onsubmit="return confirm('¿Seguro que deseas liberar este bloque?');">
 
-            <!-- Botón 2: Confirmar (solo habilitado si se comprobó y estaba LIBRE) -->
-            {% if estado == 'DISPONIBLE' %}
-                <button type="submit" name="accion" value="reservar" class="btn-confirm">2. Confirmar y Reservar Horario</button>
+                                    <input type="hidden" name="dia" value="{{ estado.dia }}">
+                                    <input type="hidden" name="bloque" value="{{ horario.bloque }}">
+
+                                    <label>
+                                        Contraseña de administrador
+                                        <input type="password" name="admin_password" autocomplete="current-password"
+                                            required>
+                                    </label>
+
+                                    <button type="submit" class="btn-primary">
+                                        Liberar bloque
+                                    </button>
+                                </form>
+                                {% else %}
+
+                                <span class="status status-free">Disponible</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="table-note">La tabla se actualiza al cargar o volver a esta página.</p>
+            {% else %}
+            <p class="hint">No hay bloques para mostrar. Revisa que el archivo Excel tenga los días en la primera fila y
+                los bloques en la primera columna.</p>
             {% endif %}
-        </form>
-    </div>
+        </section>
+        <footer>Gestión de Sala de Computación</footer>
+    </main>
 </body>
+
 </html>
